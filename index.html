@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STROOP — Test de Colores y Palabras</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- External Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
+    
+    <!-- Application Scripts -->
+    <script src="logo-data.js" defer></script>
+    <script src="scoring.js" defer></script>
+    <script src="report.js" defer></script>
+    <script src="app.js" defer></script>
+</head>
+<body>
+
+    <!-- 1. Screen Home -->
+    <section id="screen-home" class="screen active">
+        <div class="logo-area" style="margin-bottom: 2rem; display: flex; justify-content: center;">
+            <img src="logo-milos.png" alt="Clínica Milos Logo" style="max-height: 120px; max-width: 100%; object-fit: contain;">
+        </div>
+        <h1 class="main-title">STROOP</h1>
+        <h2 class="main-subtitle">Test de Colores y Palabras</h2>
+        <p class="author-line">Charles J. Golden — Adaptación española TEA Ediciones</p>
+        <p class="developer-line" style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">Creado y desarrollado por Francisco José Megías Lorenzana</p>
+        <div class="button-group" style="margin-top: 2rem;">
+            <button id="btn-new-test" class="btn btn-primary">Nueva Evaluación</button>
+            <button id="btn-dashboard" class="btn btn-secondary">Historial de Pacientes</button>
+        </div>
+    </section>
+
+    <!-- 2. Screen Patient -->
+    <section id="screen-patient" class="screen">
+        <div class="card">
+            <h2>Datos del Evaluado</h2>
+            <form id="patient-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="patient-nombre">Nombre y Apellidos</label>
+                        <input type="text" id="patient-nombre" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="patient-edad">Edad (años)</label>
+                        <input type="number" id="patient-edad" name="edad" min="7" max="80" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="patient-fechaNac">Fecha de Nacimiento</label>
+                        <input type="date" id="patient-fechaNac" name="fechaNac">
+                    </div>
+                    <div class="form-group">
+                        <label for="patient-sexo">Sexo</label>
+                        <select id="patient-sexo" name="sexo">
+                            <option value="">Seleccione...</option>
+                            <option value="Hombre">Hombre</option>
+                            <option value="Mujer">Mujer</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="patient-escolaridad">Escolaridad</label>
+                        <input type="text" id="patient-escolaridad" name="escolaridad" placeholder="Ej: Educación Secundaria">
+                    </div>
+                    <div class="form-group">
+                        <label for="patient-lateralidad">Lateralidad</label>
+                        <select id="patient-lateralidad" name="lateralidad">
+                            <option value="">Seleccione...</option>
+                            <option value="Diestro">Diestro</option>
+                            <option value="Zurdo">Zurdo</option>
+                            <option value="Ambidiestro">Ambidiestro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="patient-evaluador">Evaluador</label>
+                    <input type="text" id="patient-evaluador" name="evaluador">
+                </div>
+                <div class="form-group">
+                    <label for="patient-motivo">Motivo de Evaluación</label>
+                    <textarea id="patient-motivo" name="motivo" placeholder="Motivo de evaluación..." rows="3"></textarea>
+                </div>
+                <div class="button-group-form">
+                    <button type="button" id="btn-patient-back" class="btn btn-secondary">Volver</button>
+                    <button type="submit" id="btn-patient-next" class="btn btn-primary">Continuar</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- 3. Screen Instructions -->
+    <section id="screen-instructions" class="screen">
+        <div class="card">
+            <h2 id="instructions-title">Instrucciones</h2>
+            <div id="condition-indicator" class="condition-dots">
+                <div class="dot" id="dot-p"></div>
+                <div class="dot" id="dot-c"></div>
+                <div class="dot" id="dot-pc"></div>
+            </div>
+            <div id="instructions-text" class="instructions-content"></div>
+            <div id="instructions-demo" class="demo-area"></div>
+            <div class="button-group-center">
+                <button id="btn-start-practice" class="btn btn-primary">Comenzar Práctica</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Screen Practice -->
+    <section id="screen-practice" class="screen">
+        <div class="test-header">
+            <span id="practice-title" class="practice-label">PRÁCTICA</span>
+            <div class="counter-display">Práctica: <span id="practice-count">0</span>/5</div>
+        </div>
+        <div id="practice-stimulus-area">
+            <span id="practice-stimulus"></span>
+        </div>
+        <div id="practice-feedback"></div>
+        <div id="practice-response-buttons">
+            <button class="btn-response btn-red" data-color="rojo">ROJO (R)</button>
+            <button class="btn-response btn-green" data-color="verde">VERDE (V)</button>
+            <button class="btn-response btn-blue" data-color="azul">AZUL (A)</button>
+        </div>
+        <p class="keyboard-hint">Usa las teclas R · V · A</p>
+        <button id="btn-start-test" class="btn btn-primary mt-2" style="display:none">Comenzar Test</button>
+    </section>
+
+    <!-- 5. Screen Test -->
+    <section id="screen-test" class="screen">
+        <div class="test-header">
+            <span id="test-condition-label" class="condition-label">PALABRA (P)</span>
+            <div class="timer-display">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="36" fill="none" stroke="#e0e0e0" stroke-width="6"/>
+                    <circle id="timer-circle-fg" cx="40" cy="40" r="36" fill="none" stroke="#1a237e" stroke-width="6" stroke-dasharray="226" stroke-dashoffset="0" transform="rotate(-90 40 40)"/>
+                </svg>
+                <span id="test-timer">45</span>
+            </div>
+            <div class="score-display">
+                Aciertos: <span id="test-score">0</span>
+            </div>
+        </div>
+        <div id="stimulus-area">
+            <span id="stimulus"></span>
+        </div>
+        <div class="errors-display">
+            Errores: <span id="test-errors">0</span>
+        </div>
+        <div id="response-buttons">
+            <button id="btn-resp-rojo" class="btn-response btn-red" data-color="rojo">ROJO (R)</button>
+            <button id="btn-resp-verde" class="btn-response btn-green" data-color="verde">VERDE (V)</button>
+            <button id="btn-resp-azul" class="btn-response btn-blue" data-color="azul">AZUL (A)</button>
+        </div>
+        <p class="keyboard-hint">Usa las teclas R · V · A</p>
+    </section>
+
+    <!-- 6. Screen Countdown -->
+    <section id="screen-countdown" class="screen">
+        <span id="countdown-number">3</span>
+        <h2>Prepárese...</h2>
+    </section>
+
+    <!-- 7. Screen Condition Done -->
+    <section id="screen-condition-done" class="screen">
+        <div class="card center-content">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#43a047" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <h2>Condición Completada</h2>
+            <p id="condition-result-text"></p>
+            <div class="button-group-center mt-2">
+                <button id="btn-next-condition" class="btn btn-primary">Siguiente Condición</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. Screen Results -->
+    <section id="screen-results" class="screen">
+        <div class="card wide">
+            <h2>Resultados de la Evaluación</h2>
+            <div class="patient-summary-bar">
+                <span><strong id="results-patient-name">—</strong></span>
+                <span>Edad: <strong id="results-patient-age">—</strong></span>
+                <span>Fecha: <strong id="results-patient-date">—</strong></span>
+            </div>
+            
+            <div class="table-responsive">
+                <table id="results-table">
+                    <thead>
+                        <tr>
+                            <th>Escala</th>
+                            <th>PD</th>
+                            <th>Corrección Edad</th>
+                            <th>PD Corregida</th>
+                            <th>Punt. T</th>
+                            <th>Percentil</th>
+                            <th>Clasificación</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="results-layout">
+                <div class="chart-container">
+                    <canvas id="profile-chart" height="300"></canvas>
+                </div>
+                <div class="analysis-container">
+                    <div id="rt-summary"></div>
+                    <div class="observations-group">
+                        <label for="observations">Observaciones Clínicas</label>
+                        <textarea id="observations" placeholder="Añada observaciones clínicas..." rows="4"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="button-group mt-2">
+                <button id="btn-generate-pdf" class="btn btn-primary">Generar Informe PDF</button>
+                <button id="btn-new-from-results" class="btn btn-secondary">Nueva Evaluación</button>
+                <button id="btn-results-home" class="btn btn-secondary">Volver al Inicio</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. Screen Dashboard -->
+    <section id="screen-dashboard" class="screen">
+        <div class="card wide">
+            <h2>Historial de Evaluaciones</h2>
+            <div class="dashboard-controls">
+                <input type="text" id="search-patient" class="search-input" placeholder="Buscar por nombre...">
+                <div id="dashboard-stats" class="dashboard-stats">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table id="patients-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Edad</th>
+                            <th>Fecha</th>
+                            <th>P(T)</th>
+                            <th>C(T)</th>
+                            <th>PC(T)</th>
+                            <th>Interf(T)</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patients-tbody">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="dashboard-empty" class="empty-state" style="display: none;">
+                <p>No hay evaluaciones registradas</p>
+            </div>
+            
+            <div class="button-group-center mt-2">
+                <button id="btn-dashboard-back" class="btn btn-secondary">Volver al Inicio</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 10. Screen Report Detail -->
+    <section id="screen-report-detail" class="screen">
+        <div class="card wide">
+            <h2>Detalle de Evaluación</h2>
+            <div id="report-detail-content">
+                <!-- Filled by JS -->
+            </div>
+            <div class="chart-container">
+                <canvas id="detail-chart" height="300"></canvas>
+            </div>
+            <div class="button-group mt-2">
+                <button id="btn-detail-pdf" class="btn btn-primary">Descargar PDF</button>
+                <button id="btn-detail-back" class="btn btn-secondary">Volver</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hidden Elements -->
+    <canvas id="pdf-chart-canvas" style="display:none; width:600px; height:300px;"></canvas>
+    
+</body>
+</html>
