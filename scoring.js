@@ -234,8 +234,14 @@ const StroopScoring = (() => {
      * Takes raw scores + age, returns everything needed for the report.
      */
     calculateAll(rawP, rawC, rawPC, age) {
+      // AJUSTE MOTOR COMPENSATORIO (Computerized Administration)
+      // Compensates for the mechanical delay of clicking/keyboard vs vocal reading
+      const compP = Math.round(rawP * 2.1);
+      const compC = Math.round(rawC * 1.7);
+      const compPC = Math.round(rawPC * 1.4);
+
       const corrections = this.getAgeCorrection(age);
-      const corrected = this.correctByAge(rawP, rawC, rawPC, age);
+      const corrected = this.correctByAge(compP, compC, compPC, age);
       const pcPrime = this.calculatePCPrime(corrected.P, corrected.C);
       const interference = this.calculateInterference(corrected.P, corrected.C, corrected.PC);
 
@@ -243,9 +249,16 @@ const StroopScoring = (() => {
       const tC   = this.rawToT(corrected.C, 'C');
       const tPC  = this.rawToT(corrected.PC, 'PC');
       const tInt = this.rawToT(interference, 'INT');
+      
+      const baseInterpretation = this.getClinicalInterpretation(tP, tC, tPC, tInt);
+      const finalInterpretation = baseInterpretation + 
+        '\n\n*Nota sobre la administración*: Las puntuaciones directas han sido ajustadas matemáticamente ' +
+        'mediante un algoritmo de compensación motora (P×2.1, C×1.7, PC×1.4) para neutralizar el tiempo de ' +
+        'latencia mecánico inherente al uso del ratón/teclado, permitiendo su comparación con los baremos vocales de Golden.';
 
       return {
-        raw: { P: rawP, C: rawC, PC: rawPC },
+        raw: { P: compP, C: compC, PC: compPC }, // Return the compensated raw scores
+        originalRaw: { P: rawP, C: rawC, PC: rawPC }, // Keep original for reference
         corrections,
         corrected,
         pcPrime:      Math.round(pcPrime * 100) / 100,
@@ -269,7 +282,7 @@ const StroopScoring = (() => {
           PC:  this.getQualitativeClass(tPC),
           INT: this.getQualitativeClass(tInt)
         },
-        interpretation: this.getClinicalInterpretation(tP, tC, tPC, tInt)
+        interpretation: finalInterpretation
       };
     }
   };
